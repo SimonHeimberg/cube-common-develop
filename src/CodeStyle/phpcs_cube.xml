@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<ruleset name="cube">
+    <description>Coding style for CUBE Tools, based on the one for Symfony2.</description>
+    <rule ref="./vendor/escapestudios/symfony2-coding-standard/Symfony2/ruleset.xml"/>
+
+    <config name="severity" value="2"/>
+
+    <!-- only recommend to write comments-->
+    <rule ref="Symfony2.Commenting.FunctionComment.Missing">
+        <type>warning</type>
+    </rule>
+    <rule ref="Symfony2.Commenting.FunctionComment.MissingParamTag">
+        <type>warning</type>
+    </rule>
+    <rule ref="Symfony2.Commenting.FunctionComment.MissingReturn">
+        <type>warning</type>
+    </rule>
+    <rule ref="Symfony2.Commenting.ClassComment.Missing">
+        <type>warning</type>
+        <severity>3</severity>
+    </rule>
+
+    <rule ref="Zend.NamingConventions.ValidVariableName.NotCamelCaps">
+        <type>warning</type>
+    </rule>
+
+    <rule ref="Symfony2.Functions.ScopeOrder.Invalid">
+        <type>warning</type>
+    </rule>
+
+    <rule ref="Squiz.Strings.ConcatenationSpacing">
+        <properties>
+            <property name="ignoreNewlines" value="true"/> <!-- allow newline after-->
+        </properties>
+    </rule>
+
+    <!-- Symfony2.WhiteSpace.AssignmentSpacing.Invalid  Symfony2.WhiteSpace.BinaryOperatorSpacing.Invalid?? -->
+
+    <rule ref="Generic.Arrays.DisallowShortArraySyntax"/>
+    <rule ref="Squiz.Operators.ValidLogicalOperators"/>
+
+    <!-- null values before end are not a default value (to allow null when type specified) -->
+    <rule ref="PEAR.Functions.ValidDefaultValue.NotAtEnd">
+        <type>warning</type>
+    </rule>
+
+    <exclude-pattern>*/vendor/</exclude-pattern>
+    <exclude-pattern>*/web/bundles/</exclude-pattern>
+    <exclude-pattern>*/app/cache/*</exclude-pattern>
+
+    <config name="ignore_warnings_on_exit" value="1"/>
+</ruleset>
