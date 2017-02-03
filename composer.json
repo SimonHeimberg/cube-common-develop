@@ -1,0 +1,26 @@
+{
+    "name": "cubetools/cube-common-develop",
+    "description": "Common code for developing the CUBE Tools",
+    "homepage": "http://www.cubetools.ch",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "CUBE Team of Emch + Berger AG Bern",
+            "homepage": "http://www.cubetools.ch"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.3",
+        "incenteev/composer-parameter-handler": "^2.1"
+    },
+    "autoload": {
+        "psr-4": {"CubeTools\\CubeCommonDevelop\\": "src/"}
+    },
+    "autoload-dev": {
+        "psr-4": {"Tests\\CubeTools\\CubeCommonDevelop\\": "tests/"}
+    },
+    "support": {
+        "issues": "https://github.com/EmchBerger/CubeCommonDevelop/issues/"
+    }
+}
