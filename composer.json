@@ -23,5 +23,16 @@
     },
     "support": {
         "issues": "https://github.com/EmchBerger/CubeCommonDevelop/issues/"
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "@cube-post-install-update"
+        ],
+        "post-update-cmd": [
+            "@cube-post-install-update"
+        ],
+        "cube-post-install-update": [
+            "src/Workplace/netbeans_config_cube.sh"
+        ]
     }
 }
