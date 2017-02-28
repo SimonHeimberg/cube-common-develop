@@ -48,9 +48,6 @@ class SmoketestPageLoadingBase extends WebTestCube
             case 404:
             case 500:
                 $msg .= ': '.$this->getPageLoadingFailure($crawler, $this->getName());
-                if (isset($info->lazy) && (false !== strpos($msg, 'local problem') || false !== strpos($msg, 'Undefined ') || false !== strpos($msg, 'Variable "'))) {
-                    unset($info->lazy); // do not ignore local problems and undefined variable/index
-                }
                 break;
             default:
                 if ($client->getResponse()->isRedirect()) {
@@ -75,9 +72,15 @@ class SmoketestPageLoadingBase extends WebTestCube
                     }
                 }
         }
-        if (200 != $code && isset($info->lazy)) {
-            //TODO allow matching against codes or msgs
-            $this->markTestIncomplete('failed lazy: '.$msg);
+        if (200 !== $code && isset($info->passOrAnyOf)) {
+            $matched = $this->matchAnyOf($code, $msg, $info->passOrAnyOf);
+            if (null === $matched) {
+                // no match, will fail
+            } elseif (isset($matched['pass']) && $matched['pass']) {
+                $code = 200; // set to pass
+            } else {
+                $this->markTestIncomplete('failed ('.$matched['name'].'): '.$msg);
+            }
         }
 
         return array('code' => $code, 'msg' => $msg);
@@ -324,5 +327,40 @@ class SmoketestPageLoadingBase extends WebTestCube
         }
 
         return $url;
+    }
+
+    /**
+     * Checks if error ($msg and $code) match any of the given variants.
+     *
+     * @param int $code    error code
+     * @param string $msg  error message
+     * @param array $anyOf array of ['msg' => string, 'code' => int, ...], msg or code must be present
+     *
+     * @return null|array Matching element of $anyOf (with ['name'] set to key), null else.
+     */
+    private static function matchAnyOf($code, $msg, array $anyOf)
+    {
+        foreach ($anyOf as $name => $any) {
+            if (is_string($any)) {
+                $match = $any;
+                $any = array();
+            } elseif (isset($any['code']) && $code != $any['code']) {
+                continue; // code did not match
+            } elseif (!isset($any['msg']) && isset($any['code'])) {
+                $match = ''; // will match
+            } elseif (!isset($any['msg'])) {
+                trigger_error("'msg' or 'code' must be set, missing in ".$name, E_USER_WARNING);
+                continue;
+            } else {
+                $match = $any['msg'];
+            }
+            if (preg_match('~'.$match.'~', $msg)) {
+                $any['name'] = $name;
+
+                return $any;
+            }
+        }
+
+        return null;
     }
 }
