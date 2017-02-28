@@ -16,6 +16,11 @@ class WebTestCube extends WebTestCase
     private static $client;
     private static $conditionsChecked = false;
 
+    /**
+     * @var array with url and method to check if connection works after login, can be set in subclass
+     */
+    protected static $connectionCheckUrl = array('method' => 'GET', 'url' => '/profile/');
+
     /*
      * @var int counts tests to guess if system is probably working
      */
@@ -43,7 +48,7 @@ class WebTestCube extends WebTestCase
      */
     private static function checkClientConnection(Client $client, \Exception $oldEx = null)
     {
-        $client->request('GET', '/appcacheinit');
+        $client->request(self::$connectionCheckUrl['method'], self::$connectionCheckUrl['url']);
         $r = $client->getResponse();
         if ($r->isRedirect()) { // hostname is in redirect, so "/login" does not work
             throw new \Exception('Abort WebTest*: login failed, check password and username in parameters_test.yml', 0, $oldEx);
