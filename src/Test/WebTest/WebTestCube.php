@@ -368,12 +368,12 @@ class WebTestCube extends WebTestCase
         } catch (\PHPUnit_Framework_RiskyTestError $e) {
             throw $e; // no check for more phpunit failures
         } catch (\Exception $e) {
-            $e = $this->checkFailureProblem($e);
+            $e = $this->maybeCheckFailureProblem($e);
             throw $e;
         }
     }
 
-    protected function checkFailureProblem(\Exception $e)
+    final protected function maybeCheckFailureProblem(\Exception $e)
     {
         $doCheck = self::$client && !self::$conditionsChecked && $this->usesClient &&
             self::$probablyWorking < 24 && !getenv('TestCaseDisableCheck') &&
@@ -383,9 +383,7 @@ class WebTestCube extends WebTestCase
         if ($doCheck) {
             fwrite(STDOUT, "  checking local problems - after a failure\n");
             try {
-                $client = self::$client;
-                static::checkClientConnection($client, $e);
-                static::checkDbMapping($client->getKernel(), $e);
+                static::checkFailureProblem(self::$client, $e);
 
                 self::$conditionsChecked = true; // passed, do not check on next failure
             } catch (\Exception $ex) {
@@ -397,6 +395,23 @@ class WebTestCube extends WebTestCase
         }
 
         return $e;
+    }
+
+    /**
+     * Check if there is probably a reason for the test failure.
+     *
+     * Checks if the login worked and the db is ok.
+     * Is at most called once per run of phpunit.
+     *
+     * @param Client    $client
+     * @param Exception $e      The exeption which failed the test.
+     *
+     * @throws \Exception when a failure reason is detected (with the original exeption chained)
+     */
+    protected function checkFailureProblem(Client $client, \Exception $e)
+    {
+        static::checkClientConnection($client, $e);
+        static::checkDbMapping($client->getKernel(), $e);
     }
 
     /**
