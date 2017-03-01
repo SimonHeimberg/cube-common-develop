@@ -21,7 +21,7 @@ class WebTestCube extends WebTestCase
      */
     protected static $connectionCheckUrl = array('method' => 'GET', 'url' => '/profile/');
 
-    /*
+    /**
      * @var int counts tests to guess if system is probably working
      */
     private static $probablyWorking = 0;
@@ -73,6 +73,7 @@ class WebTestCube extends WebTestCase
         if (!self::$client) {
             if (self::$client === false) {
                 static::markTestSkipped('client could not be loaded');
+
                 return;
             }
             self::$client = false;
@@ -120,7 +121,7 @@ class WebTestCube extends WebTestCase
         return $this->checkResponse($client, $redirect);
     }
 
-    /*
+    /**
      * Submit a form and check the http reply.
      *
      * @param Client        $client
@@ -136,7 +137,7 @@ class WebTestCube extends WebTestCase
         return $this->checkResponse($client, $redirect);
     }
 
-    /*
+    /**
      * Click on a link and check the http reply.
      *
      * @param Client  $client
@@ -152,7 +153,7 @@ class WebTestCube extends WebTestCase
         return $this->checkResponse($client, $redirect);
     }
 
-    /*
+    /**
      * @param Client  $client
      * @param boolean $redirect if to follow a redirect
      *
@@ -203,6 +204,7 @@ class WebTestCube extends WebTestCase
         $toUrl = $client->getResponse()->getTargetUrl();
         $rqUrl = $reqst->getRequestUri();
         $flash = json_encode($reqst->getSession()->getFlashBag()->peekAll());
+
         return "unexpected redirect (to '$toUrl' from '$rqUrl', flashbag: $flash)";
     }
 
@@ -222,6 +224,7 @@ class WebTestCube extends WebTestCase
 
         if (false !== strpos($errTitle, 'No route found for "')) {
             // no further explication, has no more details
+
             return $errTitle;
         }
 
@@ -271,8 +274,12 @@ class WebTestCube extends WebTestCase
     public function basicPageCheck(Client $client, $url, $title)
     {
         $crawler = $this->requestSuccessful($client, 'GET', $url);
-        $this->assertGreaterThan(0, $crawler->filter('h1, h2, h3, h4')
-            ->filter(":contains('$title')")->count(), 'page has matching title');
+        $this->assertGreaterThan(
+            0,
+            $crawler->filter('h1, h2, h3, h4')->filter(":contains('$title')")->count(),
+            'page has matching title'
+        );
+
         return $crawler;
     }
 
@@ -345,6 +352,7 @@ class WebTestCube extends WebTestCase
             throw new \Exception(__METHOD__.' only works after a request in this test');
             //$client->getKernel()->boot() does not load user data
         }
+
         return $token->getUser();
     }
 

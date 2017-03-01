@@ -5,7 +5,7 @@ namespace CubeTools\CubeCommonDevelop\Test\WebTest;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * Smoke Test for pages not tested elsewhere
+ * Smoke Test for pages not tested elsewhere.
  *
  * uses some files:
  *   PageLoadingTest_routes.yml, generated when running the test with environment variable PageLoading_Load=1
@@ -31,6 +31,7 @@ class SmoketestPageLoadingBase extends WebTestCube
             $method = 'POST';
         } elseif (!in_array($method, array('GET', 'DELETE', 'PATCH', 'POST', 'PUT'))) {
             $this->markTestIncomplete(sprintf('method %s not yet supported', $method));
+
             return;
         }
 
@@ -41,7 +42,7 @@ class SmoketestPageLoadingBase extends WebTestCube
         switch ($code) {
             case 200:
                 if (isset($info->redirect)) {
-                    $this->AssertTrue(false, 'expected redirect to ' . $info->redirect);
+                    $this->AssertTrue(false, 'expected redirect to '.$info->redirect);
                 }
                 break;
             case 404:
@@ -60,7 +61,7 @@ class SmoketestPageLoadingBase extends WebTestCube
                         } else {
                             $this->assertTrue(false, 'redirect to '.$redirect.' instead of '.$info->redirect);
                         }
-                        $code = 200; # set to pass
+                        $code = 200; // set to pass
                     } else {
                         $msg = static::msgUnexpectedRedirect($client);
                     }
@@ -92,10 +93,10 @@ class SmoketestPageLoadingBase extends WebTestCube
         if ($aw['code'] == 404 && (strpos($aw['msg'], 'entity') || strpos($aw['msg'], ' not found')) ||
             $aw['code'] == 500 && strpos($aw['msg'], 'The file "') && strpos($aw['msg'], '" does not exist (500 Internal Server Error)')
         ) {
-            # id 1 does probably not exist locally, mark as skipped
-            $this->markTestSkipped('missing resource locally - ' . $aw['msg']);
+            // id 1 does probably not exist locally, mark as skipped
+            $this->markTestSkipped('missing resource locally - '.$aw['msg']);
         } elseif ($aw['code'] == 302 && strpos($aw['msg'], 'flashbag: {"general-notice":["You are not allowed ')) {
-            # no rights for this
+            // no rights for this
             $this->markTestSkipped('no access right on local resource - '.$aw['msg']);
         }
         $this->assertEquals(200, $aw['code'], $aw['msg']);
@@ -113,14 +114,14 @@ class SmoketestPageLoadingBase extends WebTestCube
         $url = $this->replaceUrlParameter($url, $info, $method);
         $aw = $this->loadPage($method, $url, $info);
         if ($aw['code'] != 200) {
-            if (!preg_match('~' . $info->knownProblem['msgMatch'] . '~', $aw['msg'])) {
-                # is not known problem
+            if (!preg_match('~'.$info->knownProblem['msgMatch'].'~', $aw['msg'])) {
+                // is not known problem
                 $this->AssertEquals(200, $aw['code'], $aw['msg']);
             }
-            # problem known and matches description
-            $this->markTestSkipped('known problem (' . $problem . ') - ' . $aw['msg']);
+            // problem known and matches description
+            $this->markTestSkipped('known problem ('.$problem.') - '.$aw['msg']);
         } else {
-            $this->markTestIncomplete('PASSED, but marked as known problem (' . $problem . ')');
+            $this->markTestIncomplete('PASSED, but marked as known problem ('.$problem.')');
         }
     }
 
@@ -133,10 +134,10 @@ class SmoketestPageLoadingBase extends WebTestCube
     }
 
     /**
-    * generates the route data similar to 'app/console debug:route' but only urls interested in
-    *
-    * @return array with route information
-    */
+     * Generates the route data similar to 'app/console debug:route' but only urls interested in.
+     *
+     * @return array with route information
+     */
     public static function &generateUrlData()
     {
         if (null === self::$kernel || null === self::$kernel->getContainer()) {
@@ -146,11 +147,13 @@ class SmoketestPageLoadingBase extends WebTestCube
         $routes = self::$kernel->getContainer()->get('router')->getRouteCollection();
         $result = array();
         foreach ($routes as $name => $route) {
-            # only use AppBundle urls, the rest is not interesting and too much data
+            // only use AppBundle urls, the rest is not interesting and too much data
             $controller = $route->getDefault('_controller');
-            if (strtok($controller, ':\\.') == "AppBundle") {
-                $infos = array('path' => $route->getPath(), 'methods' => $route->getMethods(),
-                               'defaults' => $route->getDefaults());
+            if (strtok($controller, ':\\.') == 'AppBundle') {
+                $infos = array('path' => $route->getPath(),
+                    'methods' => $route->getMethods(),
+                    'defaults' => $route->getDefaults(),
+                );
                 $result[$name] = $infos;
             }
         }
@@ -160,10 +163,10 @@ class SmoketestPageLoadingBase extends WebTestCube
     }
 
     /**
-    * loads the url data and its settings from disc (or generates the route data on demand)
-    *
-    * @return array with route informaton
-    */
+     * Loads the url data and its settings from disc (or generates the route data on demand).
+     *
+     * @return array with route informaton
+     */
     public static function loadUrlData()
     {
         if (self::class === static::class) {
@@ -222,6 +225,7 @@ class SmoketestPageLoadingBase extends WebTestCube
             $data['testType'] = $type;
             $data['testSpecial'] = $special;
         }
+
         return $urls;
     }
 
@@ -256,10 +260,10 @@ class SmoketestPageLoadingBase extends WebTestCube
                     yield $mName => array(
                         'method' => $method,
                         'path'   => $data['path'],
-                        'info'   => (object)$info,
+                        'info'   => (object) $info,
                     );
                 }
-                $i++;
+                ++$i;
             }
         }
         if (0 === $i && 'testKnownProblem' === $testMethodName) {
@@ -277,6 +281,7 @@ class SmoketestPageLoadingBase extends WebTestCube
                 $buffer = substr_replace($buffer, ', ..)', $p);
             }
         }
+
         return $buffer;
     }
 
