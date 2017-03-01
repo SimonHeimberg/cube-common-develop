@@ -307,9 +307,6 @@ class SmoketestPageLoadingBase extends WebTestCube
             $replace = array_merge($replace, $info->urlParameters);
         }
         $url = strtr($url, $replace);
-        if (strpos($url, '{')) {
-            static::markTestIncomplete('parameter in url only supported partially');
-        }
 
         return $url;
     }
