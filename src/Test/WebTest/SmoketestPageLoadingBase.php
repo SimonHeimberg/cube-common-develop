@@ -181,7 +181,7 @@ class SmoketestPageLoadingBase extends WebTestCube
             file_put_contents($rPath, Yaml::dump($urls));
             print " # routes file regenerated\n";
         } else {
-            $urls = Yaml::parse($rPath);
+            $urls = Yaml::parse(file_get_contents($rPath));
             $newFound = false;
             foreach ($curUrls as $name => $data) {
                 if (!isset($urls[$name]) || $urls[$name] != $data) {
@@ -193,7 +193,12 @@ class SmoketestPageLoadingBase extends WebTestCube
                 echo "  ** run `PageLoading_Load=1 phpunit --filter=matchNoTest` to update $rPath\n\n";
             }
         }
-        $specials = Yaml::parse(str_replace('._routes.yml', '_special.yml', $rPath));
+        $sPath = str_replace('_routes.yml', '_special.yml', $rPath);
+        if (file_exists($sPath)) {
+            $specials = Yaml::parse(file_get_contents($sPath));
+        } else {
+            $specials = array();
+        }
         foreach ($urls as $name => &$data) {
             $special = isset($specials['tests'][$name]) ? $specials['tests'][$name] : array();
             $type = '';
