@@ -187,7 +187,7 @@ class SmoketestPageLoadingBase extends WebTestCube
                 }
             }
             if ($newFound) {
-                echo "  ** run `PageLoading_Load=1 phpunit --filter=matchNoTest` to update _routes.yml\n\n";
+                echo "  ** run `PageLoading_Load=1 phpunit --filter=matchNoTest` to update $rPath\n\n";
             }
         }
         $specials = Yaml::parse(str_replace('._routes.yml', '_special.yml', $rPath));
