@@ -88,6 +88,9 @@ class SmoketestPageLoadingBase extends WebTestCube
      */
     public function testSimplePageLoadingWithParameterUrl($method, $url, $info)
     {
+        if (null === $method && null === $url && null === $info) {
+            $this->markTestSkipped('OK, no loading with parameterUrl');
+        }
         $url = $this->replaceUrlParameter($url, $info, $method);
         $aw = $this->loadPage($method, $url, $info);
         if ($aw['code'] == 404 && (strpos($aw['msg'], 'entity') || strpos($aw['msg'], ' not found')) ||
@@ -130,6 +133,9 @@ class SmoketestPageLoadingBase extends WebTestCube
      */
     public function testIgnore($method, $url, $info)
     {
+        if (null === $method && null === $url && null === $info) {
+            $this->markTestSkipped('OK, nothing ignored');
+        }
         $this->markTestIncomplete($info->ignore);
     }
 
@@ -271,7 +277,7 @@ class SmoketestPageLoadingBase extends WebTestCube
                 ++$i;
             }
         }
-        if (0 === $i && 'testKnownProblem' === $testMethodName) {
+        if (0 === $i && 'testSimplePageLoading' !== $testMethodName) {
             // would report an error when no tests returned
             yield 'skip' => array(null, null, null); // static::markTestSkipped does not yet work with phpunit 3.7.28
         }
