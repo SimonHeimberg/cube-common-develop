@@ -283,6 +283,18 @@ class SmoketestPageLoadingBase extends WebTestCube
         }
     }
 
+    /**
+     * To overwrite in subclass when unknown parameters should be skipped.
+     *
+     * TODO remove if not used anymore.
+     *
+     * @return boolean false
+     */
+    protected function skipUnknownRouteParameters()
+    {
+        return false;
+    }
+
     protected function getDataSetAsString($includeData = true)
     {
         $buffer = parent::getDataSetAsString($includeData);
@@ -307,8 +319,8 @@ class SmoketestPageLoadingBase extends WebTestCube
             $replace = array_merge($replace, $info->urlParameters);
         }
         $url = strtr($url, $replace);
-        if (strpos($url, '{')) {
-            static::markTestIncomplete('parameter in url only supported partially');
+        if ($this->skipUnknownRouteParameters() && strpos($url, '{')) {
+            static::markTestIncomplete('skipped non-id parameter in url');
         }
 
         return $url;
