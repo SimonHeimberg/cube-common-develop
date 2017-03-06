@@ -42,6 +42,7 @@ xArgs0n1="$xArgs0 -n 1 -P $(nproc)"
 retVal=0
 
 showWarning() {
+    local AW FLUSH
     if [ -n "$REPORTONLY" ]
     then
         retVal=1
@@ -65,6 +66,15 @@ showWarning() {
         read -t 1 FLUSH || true < /dev/tty # flush input
         echo -n ' [ca]? '
     done
+}
+warnWhenMissing () {
+    local lastRet=$?
+    if [ 127 -eq $lastRet ] # not found error
+    then
+        showWarning
+        return $?
+    fi
+    return $lastRet
 }
 
 checkScriptChanged() {
@@ -131,14 +141,28 @@ then
         showWarning
 fi
 
-avoidMsg='= avoid introducing what is colored above ='
-avoidColors='ms=01;33'
 # warn on unwanted terms
+
+findUnwantedTerms () {
+    # args: file-pattern, invalid-pattern
+    local avoidMsg avoidColors filePatt invPatts r
+    avoidMsg='= avoid introducing what is colored above ='
+    avoidColors='ms=01;33'
+    filePatt="$1"
+    invPatts="$2"
+
+    git diff $cachedDiff "$against" -G "$invPatts" --color -- "$filePatt" | grep -v -E '^[^-+ ]*-.*('"$invPatts)" |
+        GREP_COLORS="$avoidColors" grep --color=always -C 16 -E "$invPatts"
+    r=$?
+    if [ 0 -eq $r ]
+    then
+        echo "$avoidMsg" | GREP_COLORS="$avoidColors" grep --color=always colored
+    fi
+    return $r
+}
 invPatts="\(array\).*json_decode|new .*Filesystem\(\)|->add\([^,]*, *['\"][^ ,:]*|->add\([^,]*, new |createForm\( *new  | dump\("
-if git diff $cachedDiff "$against" -G "$invPatts" --color -- '*.php' | grep -v -E '^[^-+ ]*-.*('"$invPatts)" |
-    GREP_COLORS="$avoidColors" grep --color=always -C 16 -E "$invPatts"
+if findUnwantedTerms '*.php' "$invPatts"
 then
-    echo "$avoidMsg" | GREP_COLORS="$avoidColors" grep --color=always colored
     cat <<'TO_HERE'
 use this:
   * json_decode(xxx, true)           instead of (array) json_decode(xxx)
@@ -150,10 +174,8 @@ TO_HERE
     showWarning
 fi
 invPatts="</input>|replace\(.*n.*<br.*\)|\{% *dump |\{\{[^}]dump\("
-if git diff $cachedDiff "$against" -G "$invPatts" --color -- '*.htm*' | grep -v -E '^[^-+ ]*-.*('"$invPatts)" |
-    GREP_COLORS="$avoidColors" grep --color=always -C 16 -E "$invPatts"
+if findUnwantedTerms '*.htm*' "$invPatts"
 then
-    echo "$avoidMsg" | GREP_COLORS="$avoidColors" grep --color=always colored
     cat <<'TO_HERE'
 use this:
   * <input .../>            instead of <input ...></input> because input is standalone. Attr value="xx" is for values.
@@ -176,25 +198,91 @@ fi
 $gitListFiles -- '*.php' | $xArgs0n1 -- php -l
 
 vendorBin=vendor/bin
-[ -f $vendorBin/phpcs ] || vendorBin=bin
+[ -d $vendorBin ] || vendorBin=bin
 
-phpUnit='phpunit'
+runPhpUnit () {
+    if [ -z "$phpUnit" ]
+    then
+        if [ -f $vendorBin/phpunit ]
+            then phpUnit=$vendorBin/phpunit
+        else
+            phpUnit='phpunit'
+        fi
+    fi
+
+    $phpUnit "$@"
+}
+
+checkTranslations () {
+    local transTest
+    transTest=src/AppBundle/Tests/Resources/TranslationFileTest.php
+    if [ ! -f $transTest ]
+    then
+        echo can not check translations, test $transTest is missing.
+        showWarning
+        return $?
+    fi
+
+    runPhpUnit $transTest || warnWhenMissing
+}
 
 #check translation
-$gitListFiles --quiet  -- '*.xliff' '*.xlf' || $phpUnit src/AppBundle/Tests/Resources/TranslationFileTest.php
+$gitListFiles --quiet  -- '*.xliff' '*.xlf' || checkTranslations
 
+findSyConsole () {
+    if [ -z "$syConsole" ]
+    then
+        syConsole=bin/console
+        if [ -f $syConsole ]
+            then true # OK
+        elif [ -f app/console ]
+            then syConsole=app/console
+        else
+            syConsoleError='console not available to run '$syConsole
+        fi
+    fi
 
-syConsole=bin/console
-[ -f $syConsole ] || syConsole=app/console
+    if [ -n "$syConsoleError" ]
+        then return 127
+    fi
+}
+
+syConsoleRun() {
+    if ! findSyConsole
+    then
+        echo $syConsoleError $@
+        return 127 # not found error
+    fi
+    $syConsole $@
+}
+syConsoleXargs () {
+    local oneChar
+    if ! findSyConsole  && read -N 1 oneChar
+    then # no console but input, trigger error
+        { printf "$oneChar"; cat; } | $xArgs0 -- echo $syConsoleError $@
+        return 127
+    fi
+    $xArgs0 -- $syConsole $@
+}
+syConsoleXargsN1 () {
+    local oneChar
+    if ! findSyConsole && read -N 1 oneChar
+    then # no console but input, trigger error listing files in one command
+        { printf "$oneChar"; cat; } | $xArgs0 -- echo $syConsoleError "$@" for
+        return 127
+    fi
+    $xArgs0n1 -- $syConsole "$@"
+}
+
 
 #check database (when an annotation or a variable changed in an entity)
-$gitListFiles --quiet -G ' @|(protected|public|private) +\$\w' -- 'src/AppBundle/Entity/' || $syConsole doctrine:schema:validate || showWarning
+$gitListFiles --quiet -G ' @|(protected|public|private) +\$\w' -- 'src/*/Entity/' || syConsoleRun doctrine:schema:validate || showWarning
 
 #check twig
-$gitListFiles -- '*.twig' | $xArgs0 $syConsole lint:twig --
+$gitListFiles -- '*.twig' | syConsoleXargs lint:twig || warnWhenMissing
 
 #check yaml
-$gitListFiles -- '*.yml' | $xArgs0n1 $syConsole lint:yaml --
+$gitListFiles -- '*.yml' | syConsoleXargsN1 lint:yaml -- || warnWhenMissing
 
 #check composer
 if ! $gitListFiles --quiet -- 'composer.*'
