@@ -67,24 +67,37 @@ showWarning() {
     done
 }
 
-#check if script has changed
-origPath=src/CodeStyle/check-commit-cube.sh
-scriptPath="$BASH_SOURCE"
-if [ "$origPath" -ot "$scriptPath" ]
-then true # current one is not older
-elif $gitListFiles --quiet
-then true # no files to check
-elif ! diff -q "$origPath" "$scriptPath" > /dev/null
-then
-	# different content
-	echo "update the pre-commit script by running cp -b $origPath '$scriptPath'"
-	showWarning
-else # same content but older
-	touch -r "$origPath" "$scriptPath" #update timestamp
-fi
+checkScriptChanged() {
+    #check if script has changed
+    local pathInRepo
+    pathInRepo=src/CodeStyle/check-commit-cube.sh
 
-# If you want to allow non-ASCII filenames set this variable to true.
-allownonascii=$(git config --bool hooks.allownonascii)
+    if [ -n "$ccOrigPath" ]
+        then true # is set from calling script
+    elif [ -f vendor/cubetools/cube-common-develop/$pathInRepo ]
+        then ccOrigPath=vendor/cubetools/cube-common-develop/$pathInRepo
+    elif [ -f $pathInRepo ]
+        then ccOrigPath=$pathInRepo
+    else
+        echo can not check if script is current, set ccOrigPath in your main check commit script
+        showWarning
+        return $?
+    fi
+    [ -z "$ccScriptPath" ] && ccScriptPath=$BASH_SOURCE # set to this scripts path if not set
+    if [ "$ccOrigPath" -ot "$ccScriptPath" ]
+        then true # current one is not older
+    elif $gitListFiles --quiet
+        then true # no files to check
+    elif ! diff -q "$ccOrigPath" "$ccScriptPath" > /dev/null
+    then
+        # different content
+        echo "update the pre-commit script by running cp -b $ccOrigPath '$ccScriptPath'"
+        showWarning
+    else # same content but older
+        touch -r "$ccOrigPath" "$ccScriptPath" #update timestamp
+    fi
+}
+checkScriptChanged
 
 # Redirect output to stderr.
 exec 1>&2
