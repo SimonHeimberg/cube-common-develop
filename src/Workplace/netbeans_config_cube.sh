@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # encourage developer to use the recommended netbeans settings
 
@@ -25,3 +25,18 @@ then # netbeans is installed
     fi
     cp -n nbproject/project.xml.dist nbproject/project.xml # copy project xml if it does not exist
 fi
+
+installGitHook () {
+    checkCommitArg=$1
+    if [ '--nocc' != "$checkCommitArg" ] && [ -d .git ]
+    then
+        if [ -z "$checkCommitArg" ]
+        then
+            checkStyle="$(dirname $BASH_SOURCE)/../CodeStyle/check-commit-cube.sh"
+        else
+            checkStyle="$checkCommitArg"
+        fi
+        [ -f .git/hooks/pre-commit ] || cp -n "$checkStyle" .git/hooks/pre-commit
+    fi
+}
+installGitHook $1
