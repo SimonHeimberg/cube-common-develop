@@ -30,9 +30,9 @@ class SymfonyLoadableTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider getAppNames
      */
-    public function testAppRunnable($appName)
+    public function testAppRunnable($appPath)
     {
-        $p = new Process(self::$php.' web/'.$appName, null, null, 5);
+        $p = new Process(self::$php.' '.$appPath, null, null, 5);
         $p->mustRun();
         $this->assertEquals('', $p->getErrorOutput(), 'no error output');
         $this->assertNotEmpty($p->getOutput(), 'some output');
@@ -40,7 +40,11 @@ class SymfonyLoadableTest extends \PHPUnit_Framework_TestCase
 
     public static function getAppNames()
     {
-        return array(array('app.php'), array('app_dev.php'));
+        yield 'prod' => array('web/app.php');
+
+        foreach (glob('web/app_*.php') as $appPath) {
+            yield basename($appPath) => array($appPath);
+        }
     }
 
     public function testConsoleRunnable()
