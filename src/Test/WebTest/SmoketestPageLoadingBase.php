@@ -240,10 +240,11 @@ class SmoketestPageLoadingBase extends WebTestCube
             $data['testSpecial'] = $special;
         }
 
-        return $urls;
+        return array('urls' => $urls, 'specials' => $specials);
     }
 
-    public static $urlData = null;
+    protected static $urlData = null;
+    protected static $specials = null;
 
     /**
      * @param string $testMethodName name of test method the dataprovider is called for
@@ -251,7 +252,9 @@ class SmoketestPageLoadingBase extends WebTestCube
     public static function listUrls($testMethodName)
     {
         if (static::$urlData === null) {
-            static::$urlData = static::loadUrlData();
+            $loaded = static::loadUrlData();
+            static::$urlData = $loaded['urls'];
+            static::$specials = $loaded['specials'];
         }
         $i = 0;
         foreach (static::$urlData as $name => $data) {
@@ -341,6 +344,13 @@ class SmoketestPageLoadingBase extends WebTestCube
     private static function matchAnyOf($code, $msg, array $anyOf)
     {
         foreach ($anyOf as $name => $any) {
+            if (is_string($any) && $any && '@' === $any[0]) {
+                $name .= ' '.$any;
+                $any = self::getFromConfigSpecials('anyMatch', substr($any, 1));
+                if (null === $any) {
+                    return null;
+                }
+            }
             if (is_string($any)) {
                 $match = $any;
                 $any = array();
@@ -362,5 +372,25 @@ class SmoketestPageLoadingBase extends WebTestCube
         }
 
         return null;
+    }
+
+    /**
+     * Read form special config, warn if not existing (and return null).
+     *
+     * @param string $group 1st config level below specials
+     * @param string $key   2nd config level below specials
+     *
+     * @return any
+     */
+    private static function getFromConfigSpecials($group, $key)
+    {
+        if (empty(self::$specials[$group][$key])) {
+            $msg = "$key must be in specials.$group on ";
+            trigger_error($msg, E_USER_WARNING);
+
+            return none;
+        }
+
+        return self::$specials[$group][$key];
     }
 }
