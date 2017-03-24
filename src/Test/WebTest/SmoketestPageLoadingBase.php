@@ -337,12 +337,23 @@ class SmoketestPageLoadingBase extends WebTestCube
      *
      * @param int $code    error code
      * @param string $msg  error message
-     * @param array $anyOf array of ['msg' => string, 'code' => int, ...], msg or code must be present
+     * @param array|string $anyOf '@...' or array of ('@...' or ['msg' => string, 'code' => int, ...], msg or code must be present)
      *
      * @return null|array Matching element of $anyOf (with ['name'] set to key), null else.
      */
-    private static function matchAnyOf($code, $msg, array $anyOf)
+    private static function matchAnyOf($code, $msg, $anyOf)
     {
+        if (is_string($anyOf) && $anyOf && '@' === $anyOf[0]) {
+            $anyOf = self::getFromConfigSpecials('anyMatchGroup', substr($anyOf, 1));
+            if (null === $anyOf) {
+                return null;
+            }
+        } elseif (!is_array($anyOf) && !$anyOf instanceof \Traversable) {
+            $msg = "\$anyOf must be '@xxx' or array, but it is ".gettype($anyOf).' ('.print_r($anyOf, true).')';
+            trigger_error($msg, E_USER_WARNING);
+
+            return null;
+        }
         foreach ($anyOf as $name => $any) {
             if (is_string($any) && $any && '@' === $any[0]) {
                 $name .= ' '.$any;
