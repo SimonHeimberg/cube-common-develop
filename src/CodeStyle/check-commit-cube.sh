@@ -173,12 +173,13 @@ use this:
 TO_HERE
     showWarning
 fi
-invPatts="</input>|replace\(.*n.*<br.*\)|\{% *dump |\{\{[^}]dump\("
+invPatts="</input>|</br>|replace\(.*n.*<br.*\)|\{% *dump |\{\{[^}]dump\("
 if findUnwantedTerms '*.htm*' "$invPatts"
 then
     cat <<'TO_HERE'
 use this:
   * <input .../>            instead of <input ...></input> because input is standalone. Attr value="xx" is for values.
+  * <div>...</div> or <br>  instead of </br>, an unexisting tag
   * |nl2br                  instead of |replace({'\n', '<br>'}) (nl2br does NOT need {% autoescape false %} or |raw )
   * remove debugging        {% dump ... %} and {{ dump( ... ) do not work on non-debug run
 TO_HERE
