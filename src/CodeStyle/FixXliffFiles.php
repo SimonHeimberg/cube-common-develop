@@ -4,6 +4,7 @@ namespace CubeTools\CubeCommonDevelop\CodeStyle;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DomCrawler\Crawler;
@@ -42,19 +43,21 @@ class FixXliffFiles extends Command
         $this
             ->setName('lint:xliff:cubestyle')
             ->addArgument('files', InputArgument::IS_ARRAY | InputArgument::REQUIRED, 'files to check')
+            ->addOption('fix', 'f', InputOption::VALUE_NONE, 'write file directly')
         ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $files = $input->getArgument('files');
+        $doFix = $input->getOption('fix');
         $nErrors = 0;
         $eFiles = 0;
         $cFiles = 0;
         foreach ($files as $file) {
             ++$cFiles;
             $output->write($file);
-            $errors = $this->fixXliffFile($file);
+            $errors = $this->fixXliffFile($file, $doFix);
             if ($errors) {
                 $n = count($errors);
                 $output->writeln(sprintf(' <error>%d ERRORS</>', $n));
