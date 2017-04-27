@@ -9,6 +9,7 @@ use CubeTools\CubeCommonDevelop\CodeStyle;
 function addCcdCommands($application)
 {
     $application->add(new Command\CheckXliffFiles());
+    $application->add(new Command\CheckHtmlTwig());
 }
 
 function initCommands()
