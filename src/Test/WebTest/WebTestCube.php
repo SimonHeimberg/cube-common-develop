@@ -154,6 +154,40 @@ class WebTestCube extends WebTestBase
     }
 
     /**
+     * Get errors of forms from the profiler.
+     *
+     * @param Profiler $profiler
+     *
+     * @return string[] all form errors with the keys containing the name of the form and the child
+     */
+    public static function getFormErrors($profiler)
+    {
+        $formsData = $profiler->getCollector('form')->getData();
+
+        if (empty($formsData['nb_errors'])) {
+            return null;
+        }
+
+        $errors = array();
+        foreach ($formsData['form'] as $formName => $form) { // TODO do with ArrayHelper::filterRecursive and ...::flattenWithKeys
+            if (isset($form['errors'])) {
+                $errors[$formName] = $form['errors'];
+            }
+            foreach ($form['children'] as $childName => $child) {
+                if (isset($child['errors'])) {
+                    $errors[$formName.':'.$childName] = $child['errors'];
+                }
+            }
+        }
+
+        if (count($errors) !== $formsData['nb_errors']) {
+            $errors['TEST-'.__FUNCTION__] = 'TEST ERROR: expected '.$formsData['nb_errors'].' errors, but found '.count($errors);
+        }
+
+        return $errors;
+    }
+
+    /**
      * Get a value for a form field.
      *
      * @param Symfony\Component\DomCrawler\Field\FormField $element form element to get the value for
