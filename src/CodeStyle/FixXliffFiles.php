@@ -20,18 +20,28 @@ class FixXliffFiles extends Command
         $crawler = new Crawler();
         $crawler->addXMLContent($content);
         $fixed = array();
-        $crawler->filter('body trans-unit')->each(function ($unit) use (&$fixed) {
+        $runs = $crawler->filter('body trans-unit')->each(function ($unit) use (&$fixed) {
             $this->checkUnit($unit, $fixed);
         });
         if ($fixed) {
             $xmlDoc = $crawler->getNode(0)->ownerDocument;
             $xmlDoc->encoding = 'utf-8';
-            $bytes = \file_put_contents($fileName.'#', $xmlDoc->saveXML());
-            if ($doFix && $bytes) {
+            $xmlContent = $xmlDoc->saveXML();
+            $xmlContent = \str_replace(' ns="', ' xmlns="', \substr($xmlContent, 0, 128)).\substr($xmlContent, 128);
+            // str_replace because xmlns= is changed to ns=. (by Crawler.)
+            $nBytes = \file_put_contents($fileName.'#', $xmlContent);
+            if ($doFix && $nBytes) {
                 rename($fileName, $fileName.'~');
                 rename($fileName.'#', $fileName);
             } elseif ($doFix) {
                 $fixed[] = 'FAILED to write file';
+            }
+        } elseif (!$runs) {
+            $err = libxml_get_last_error();
+            if ($err) {
+                $fixed[] = 'ERROR in xml: '.$err->message;
+            } else {
+                $fixed[] = 'WARNING, no elements found, maybe xml not well-formatted';
             }
         }
 
@@ -64,7 +74,7 @@ class FixXliffFiles extends Command
                 $nErrors += $n;
                 foreach ($errors as $error) {
                     $msg = sprintf(
-                        ' * <comment>%s</>',
+                        " * <comment>%s</>\n",
                         $error
                     );
                     $output->write($msg);
