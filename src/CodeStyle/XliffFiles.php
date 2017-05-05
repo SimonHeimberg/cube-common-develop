@@ -9,9 +9,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DomCrawler\Crawler;
 
-class FixXliffFiles extends Command
+class XliffFiles
 {
-    public function fixXliffFile($fileName, $doFix = false, $reindent = false)
+    public static function fixXliffFile($fileName, $doFix = false, $reindent = false)
     {
         if (!file_exists($fileName)) {
             return array('file not found');
@@ -21,7 +21,7 @@ class FixXliffFiles extends Command
         $crawler->addXMLContent($content);
         $fixed = array();
         $runs = $crawler->filter('body trans-unit')->each(function ($unit) use (&$fixed) {
-            $this->checkUnit($unit, $fixed);
+            self::checkUnit($unit, $fixed);
         });
         if ($fixed) {
             $xmlDoc = $crawler->getNode(0)->ownerDocument;
@@ -55,59 +55,11 @@ class FixXliffFiles extends Command
         return $fixed;
     }
 
-    protected function configure()
-    {
-        $this
-            ->setName('lint:xliff:cubestyle')
-            ->addArgument('files', InputArgument::IS_ARRAY | InputArgument::REQUIRED, 'files to check')
-            ->addOption('fix', 'f', InputOption::VALUE_NONE, 'write file directly')
-            ->addOption('reindent', 'i', InputOption::VALUE_NONE, 'redo indentation of tags')
-        ;
-    }
-
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
-        $files = $input->getArgument('files');
-        $doFix = $input->getOption('fix');
-        $reindent = $input->getOption('reindent');
-        $nErrors = 0;
-        $eFiles = 0;
-        $cFiles = 0;
-        foreach ($files as $file) {
-            ++$cFiles;
-            $output->write($file);
-            $errors = $this->fixXliffFile($file, $doFix, $reindent);
-            if ($errors) {
-                $n = count($errors);
-                $output->writeln(sprintf(' <error>%d ERRORS</>', $n));
-                $nErrors += $n;
-                foreach ($errors as $error) {
-                    $msg = sprintf(
-                        " * <comment>%s</>\n",
-                        $error
-                    );
-                    $output->write($msg);
-                }
-                ++$eFiles;
-            } else {
-                $output->writeln(' <info>[OK]</>');
-            }
-        }
-        if ($nErrors) {
-            $msg = '<comment>%s</>: <error>%d Errors</> in <error>%d</> files (checked %d of %d)';
-            $output->writeln(\sprintf($msg, $this->getName(), $nErrors, $eFiles, $cFiles, \count($files)));
-        } else {
-            $output->writeln(\sprintf('%s: <info>[OK] checked %d files</>', $this->getName(), \count($files)));
-        }
-
-        return $nErrors;
-    }
-
-    private function checkUnit($unit, array &$fixed)
+    private static function checkUnit($unit, array &$fixed)
     {
         $id = $unit->attr('id');
         $sourceTxt = $unit->filter('source')->text();
-        if ($this->invalidId($id, $sourceTxt)) {
+        if (self::invalidId($id, $sourceTxt)) {
             $spacePos = strpos($sourceTxt, ' %');
             if (false !== $spacePos) {
                 $nId = substr($sourceTxt, 0, $spacePos);

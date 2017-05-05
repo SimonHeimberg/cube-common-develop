@@ -8,7 +8,7 @@ use CubeTools\CubeCommonDevelop\CodeStyle;
 
 function addCcdCommands($application)
 {
-    $application->add(new CodeStyle\FixXliffFiles());
+    $application->add(new Command\CheckXliffFiles());
 }
 
 function initCommands()
