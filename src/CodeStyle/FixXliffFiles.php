@@ -11,7 +11,7 @@ use Symfony\Component\DomCrawler\Crawler;
 
 class FixXliffFiles extends Command
 {
-    public function fixXliffFile($fileName, $doFix = false)
+    public function fixXliffFile($fileName, $doFix = false, $reindent = false)
     {
         if (!file_exists($fileName)) {
             return array('file not found');
@@ -26,7 +26,14 @@ class FixXliffFiles extends Command
         if ($fixed) {
             $xmlDoc = $crawler->getNode(0)->ownerDocument;
             $xmlDoc->encoding = 'utf-8';
-            $xmlContent = $xmlDoc->saveXML();
+            if ($reindent) {
+                $xmlDoc->preserveWhiteSpace = false;
+                $xmlDoc->formatOutput = true;
+                $xmlDoc->loadXML($xmlDoc->saveXML()); // must reload because format is applied on loading only
+                $xmlContent = \preg_replace('/^( +)\</m', '$1$1<', $xmlDoc->saveXML()); // change indentation from 2 to 4
+            } else {
+                $xmlContent = $xmlDoc->saveXML();
+            }
             $xmlContent = \str_replace(' ns="', ' xmlns="', \substr($xmlContent, 0, 128)).\substr($xmlContent, 128);
             // str_replace because xmlns= is changed to ns=. (by Crawler.)
             $nBytes = \file_put_contents($fileName.'#', $xmlContent);
@@ -54,6 +61,7 @@ class FixXliffFiles extends Command
             ->setName('lint:xliff:cubestyle')
             ->addArgument('files', InputArgument::IS_ARRAY | InputArgument::REQUIRED, 'files to check')
             ->addOption('fix', 'f', InputOption::VALUE_NONE, 'write file directly')
+            ->addOption('reindent', 'i', InputOption::VALUE_NONE, 'redo indentation of tags')
         ;
     }
 
@@ -61,13 +69,14 @@ class FixXliffFiles extends Command
     {
         $files = $input->getArgument('files');
         $doFix = $input->getOption('fix');
+        $reindent = $input->getOption('reindent');
         $nErrors = 0;
         $eFiles = 0;
         $cFiles = 0;
         foreach ($files as $file) {
             ++$cFiles;
             $output->write($file);
-            $errors = $this->fixXliffFile($file, $doFix);
+            $errors = $this->fixXliffFile($file, $doFix, $reindent);
             if ($errors) {
                 $n = count($errors);
                 $output->writeln(sprintf(' <error>%d ERRORS</>', $n));
@@ -110,6 +119,7 @@ class FixXliffFiles extends Command
             if ($id !== $nId) {
                 $node = $unit->getNode(0);
                 $node->setAttribute('id', $nId);
+                $node->removeAttribute('resname'); // unwanted
                 $fixed[] = 'id of "'.substr(strtr($sourceTxt, array("\n" => "\\n")), 0, 128).'"';
             }
         }
