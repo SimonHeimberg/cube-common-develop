@@ -113,6 +113,9 @@ class FixXliffFiles extends Command
                 $fixed[] = 'id of "'.substr(strtr($sourceTxt, array("\n" => "\\n")), 0, 128).'"';
             }
         }
+        if (false !== strpos($sourceTxt, ' %') && false === strpos($unit->filter('target')->text(), ' %')) {
+            $fixed[] = 'TODO include parameters in source "'.strtr($sourceTxt, array("\n", "\\n")).'" (from target )';
+        }
     }
 
     private static function invalidId($id, $sourceTxt)
