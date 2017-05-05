@@ -98,15 +98,26 @@ class FixXliffFiles extends Command
     {
         $id = $unit->attr('id');
         $sourceTxt = $unit->filter('source')->text();
-        if (false === strpos($sourceTxt, $id) && false === strpos(strtolower($sourceTxt), $id)) {
+        if ($this->invalidId($id, $sourceTxt)) {
             $spacePos = strpos($sourceTxt, ' %');
             if (false !== $spacePos) {
                 $nId = substr($sourceTxt, 0, $spacePos);
+            } elseif (false !== strpos($sourceTxt, ' ') && strlen($sourceTxt) > 64) {
+                $nId = substr($sourceTxt, 0, 64 - 8 - 1).'_'.substr(md5($sourceTxt), 3, 8);
             } else {
                 $nId = $sourceTxt;
             }
-            $unit->getNode(0)->setAttribute('id', $nId);
-            $fixed[] = 'id of "'.substr(strtr($sourceTxt, array("\n" => "\\n")), 0, 128).'"';
+            if ($id !== $nId) {
+                $node = $unit->getNode(0);
+                $node->setAttribute('id', $nId);
+                $fixed[] = 'id of "'.substr(strtr($sourceTxt, array("\n" => "\\n")), 0, 128).'"';
+            }
         }
+    }
+
+    private static function invalidId($id, $sourceTxt)
+    {
+        return !$id || false !== strpos($id, ' %') ||
+            (false === strpos($sourceTxt, $id) && false === strpos(strtolower($sourceTxt), $id));
     }
 }
