@@ -207,8 +207,15 @@ class SmoketestPageLoadingBase extends WebTestBase
             file_put_contents($rPath, Yaml::dump($urls));
             print " # routes file regenerated\n";
         } else {
-            $urls = Yaml::parse(file_get_contents($rPath));
             $newFound = false;
+            if (file_exists($rPath)) {
+                $urls = Yaml::parse(file_get_contents($rPath));
+            } else {
+                $urls = array();
+                $todoUrl = array('defaults' => array('_controller' => ''), 'methods' => array('GET'));
+                $todoUrl['path'] = 'TODO: update _routes.yml, see hint at top.';
+                $curUrls = array_merge(array('TODO' => $todoUrl), $curUrls);
+            }
             foreach ($curUrls as $name => $data) {
                 if (!isset($urls[$name]) || $urls[$name] != $data) {
                     $urls[$name.' __new__'] = $data;
