@@ -136,6 +136,31 @@ class SmoketestPageLoadingBase extends WebTestBase
     /**
      * @dataProvider listUrls
      */
+    public function testExpectError($method, $url, $info)
+    {
+        if (null === $method && null === $url && null === $info) {
+            $this->markTestSkipped('OK, no expected failure');
+        }
+        $url = $this->replaceUrlParameter($url, $info, $method);
+        $aw = $this->loadPage($method, $url, $info);
+        $matched = $this->matchAnyOf($aw['code'], $aw['msg'], $info->expectError);
+        if (null !== $matched) {
+            // matches
+            if (isset($matched['pass']) && $matched['pass']) {
+                $this->assertTrue(true);
+            } else {
+                $this->markTestIncomplete('failed ('.$matched['name'].'): '.$aw['msg']);
+            }
+        } elseif (200 === $aw['code']) {
+            $this->fail('should have an error, but passed');
+        } else {
+            $this->fail('failed with wrong error (with '.$aw['code'].' - '.$aw['msg'].')');
+        }
+    }
+
+    /**
+     * @dataProvider listUrls
+     */
     public function testIgnore($method, $url, $info)
     {
         if (null === $method && null === $url && null === $info) {
@@ -247,6 +272,8 @@ class SmoketestPageLoadingBase extends WebTestBase
                 $type = 'testIgnore';
             } elseif (isset($special['knownProblem'])) {
                 $type = 'testKnownProblem';
+            } elseif (isset($special['expectError'])) {
+                $type = 'testExpectError';
             }
             if ($type != '') {
                 // type already set
