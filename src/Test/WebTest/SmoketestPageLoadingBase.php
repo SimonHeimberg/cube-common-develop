@@ -3,6 +3,7 @@
 namespace CubeTools\CubeCommonDevelop\Test\WebTest;
 
 use Symfony\Component\Yaml\Yaml;
+use Symfony\Component\Routing\Route;
 
 /**
  * Smoke Test for pages not tested elsewhere.
@@ -156,9 +157,8 @@ class SmoketestPageLoadingBase extends WebTestBase
         $routes = self::$kernel->getContainer()->get('router')->getRouteCollection();
         $result = array();
         foreach ($routes as $name => $route) {
-            // only use AppBundle urls, the rest is not interesting and too much data
-            $controller = $route->getDefault('_controller');
-            if (strtok($controller, ':\\.') == 'AppBundle') {
+            // only use interesing urls, the rest is too much uninteresing data
+            if (static::interestedInRoute($route)) {
                 $infos = array('path' => $route->getPath(),
                     'methods' => $route->getMethods(),
                     'defaults' => $route->getDefaults(),
@@ -169,6 +169,23 @@ class SmoketestPageLoadingBase extends WebTestBase
         ksort($result);
 
         return $result;
+    }
+
+    /**
+     * Returns true when we are interested in this route (when route from AppBundle).
+     *
+     * Can be overwritten in a subclass to adapt to what is interesting in a project.
+     *
+     * @param Route $route
+     *
+     * @return bool true when interested in this route
+     */
+    public static function interestedInRoute(Route $route)
+    {
+        $controllerName = $route->getDefault('_controller');
+        $topName = strtok($controllerName, ':\\.');
+
+        return 'AppBundle' === $topName;
     }
 
     /**
