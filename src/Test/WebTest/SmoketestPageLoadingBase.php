@@ -117,18 +117,19 @@ class SmoketestPageLoadingBase extends WebTestBase
         if (null === $method && null === $url && null === $info) {
             $this->markTestSkipped('OK, no known problem');
         }
-        $problem = $info->knownProblem['problemName'];
         $url = $this->replaceUrlParameter($url, $info, $method);
         $aw = $this->loadPage($method, $url, $info);
         if ($aw['code'] != 200) {
-            if (!preg_match('~'.$info->knownProblem['msgMatch'].'~', $aw['msg'])) {
-                // is not known problem
+            $matched = $this->matchAnyOf($aw['code'], $aw['msg'], $info->knownProblem);
+            if (null === $matched) {
+                // no match, fail
                 $this->AssertEquals(200, $aw['code'], $aw['msg']);
+            } else {
+                // problem known and matches description
+                $this->markTestSkipped('known problem ('.$matched['name'].'): '.$aw['msg']);
             }
-            // problem known and matches description
-            $this->markTestSkipped('known problem ('.$problem.') - '.$aw['msg']);
         } else {
-            $this->markTestIncomplete('PASSED, but marked as known problem ('.$problem.')');
+            $this->markTestIncomplete('PASSED, but marked as known problem');
         }
     }
 
@@ -245,15 +246,6 @@ class SmoketestPageLoadingBase extends WebTestBase
             } elseif (isset($special['ignore'])) {
                 $type = 'testIgnore';
             } elseif (isset($special['knownProblem'])) {
-                $problemName = $special['knownProblem'];
-                if (isset($specials['knownProblem'][$problemName])) {
-                    $special['knownProblem'] = $specials['knownProblem'][$problemName];
-                    $special['knownProblem']['problemName'] = $problemName;
-                } elseif (false !== strpos($problemName, ' ')) {
-                    $special['knownProblem'] = array('problemName' => 'simpleKnown', 'msgMatch' => $problemName);
-                } else {
-                    throw new \Exception($problemName.' is not defined in knownProblem');
-                }
                 $type = 'testKnownProblem';
             }
             if ($type != '') {
