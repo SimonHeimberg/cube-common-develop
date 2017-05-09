@@ -14,7 +14,7 @@ use Symfony\Component\Yaml\Yaml;
  *
  * @group pageloading // not inherited, must be set in subclass
  */
-class SmoketestPageLoadingBase extends WebTestCube
+class SmoketestPageLoadingBase extends WebTestBase
 {
     /**
      * @dataProvider listUrls
