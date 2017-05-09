@@ -203,9 +203,12 @@ class SmoketestPageLoadingBase extends WebTestBase
         }
         $curUrls = static::generateUrlData();
         if (getenv('PageLoading_Load')) {
-            $urls = $curUrls;
-            file_put_contents($rPath, Yaml::dump($urls));
-            print " # routes file regenerated\n";
+            if (file_put_contents($rPath, Yaml::dump($curUrls))) {
+                $urls = $curUrls;
+                print " # routes file regenerated\n";
+            } else {
+                print " # FAILED generating routes file\n";
+            }
         } else {
             $newFound = false;
             if (file_exists($rPath)) {
