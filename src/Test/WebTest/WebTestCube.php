@@ -125,7 +125,7 @@ class WebTestCube extends WebTestCase
      * Submit a form and check the http reply.
      *
      * @param Client        $client
-     * @param FormInterface $form     The form to submit
+     * @param Form          $form     The form to submit
      * @param boolean       $redirect (see in checkResponse)
      *
      * @return Crawler
@@ -306,31 +306,57 @@ class WebTestCube extends WebTestCase
     /**
      * Fills all empty Form fields with some value
      *
-     * @param Form $form
+     * @param Symfony\Component\DomCrawler\Form $form
      *
-     * @return Form
+     * @return Symfony\Component\DomCrawler\Form
      */
     public function fillForm($form)
     {
         $i = 0;
         foreach ($form->all() as $element) {
             if (!$element->getValue()) {
-                $eClass = get_class($element);
-                if (false !== strpos($eClass, 'ChoiceFormField')) {
-                    $options = $element->availableOptionValues();
-                    if (array() === $options) {
-                        $this->markTestSkipped('no option values for form field '.$element->getName());
-                    }
-                    $element->setValue($options[0]);
-                } else {
-                    $eName = $element->getName();
-                    $element->setValue("X_$i-$eName,y");
-                }
+                // is empty
+                $element->setValue($this->getElementValueToFillIn($element, $i));
             }
             ++$i;
         }
 
         return $form;
+    }
+
+    /**
+     * Get a value for a form field.
+     *
+     * @param Symfony\Component\DomCrawler\Field\FormField $element form element to get the value for
+     * @param int $i                                                index
+     *
+     * @return many value to fill in
+     */
+    protected function getElementValueToFillIn($element, $i)
+    {
+        $eClass = get_class($element);
+        if (false !== strpos($eClass, 'ChoiceFormField')) {
+            $options = $element->availableOptionValues();
+            if (array() === $options) {
+                $this->markTestSkipped('no option values for form field '.$element->getName());
+            }
+            $j = $i % count($options);
+            $val = $options[$j];
+            if ($val) {
+                // fine
+            } elseif (isset($options[$j+1])) {
+                $val = $options[$j+1];
+            } elseif (isset($options[$j-1])) {
+                $val = $options[$j-1];
+            } else {
+                $this->markTestSkipped('no NON-empty option value for form field '.$element->getName());
+            }
+        } else {
+            $eName = $element->getName();
+            $val = "X_$i-$eName,y";
+        }
+
+        return $val;
     }
 
     /**
