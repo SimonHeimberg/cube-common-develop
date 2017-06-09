@@ -79,6 +79,8 @@ class SmoketestPageLoadingBase extends WebTestBase
                 // no match, will fail
             } elseif (isset($matched['pass']) && $matched['pass']) {
                 $code = 200; // set to pass
+            } elseif (isset($matched['msg']) && '.' === $matched['msg']) {
+                $this->markTestSkipped('failed ('.$matched['name'].'): '.$msg);
             } else {
                 $this->markTestIncomplete('failed ('.$matched['name'].'): '.$msg);
             }
@@ -342,7 +344,7 @@ class SmoketestPageLoadingBase extends WebTestBase
      *
      * @return boolean false
      */
-    protected function skipUnknownRouteParameters()
+    protected static function skipUnknownRouteParameters()
     {
         return false;
     }
@@ -371,7 +373,7 @@ class SmoketestPageLoadingBase extends WebTestBase
             $replace = array_merge($replace, $info->urlParameters);
         }
         $url = strtr($url, $replace);
-        if ($this->skipUnknownRouteParameters() && strpos($url, '{')) {
+        if (static::skipUnknownRouteParameters() && strpos($url, '{')) {
             static::markTestIncomplete('skipped non-id parameter in url');
         }
 
