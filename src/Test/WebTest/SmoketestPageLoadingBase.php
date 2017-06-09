@@ -79,6 +79,8 @@ class SmoketestPageLoadingBase extends WebTestBase
                 // no match, will fail
             } elseif (isset($matched['pass']) && $matched['pass']) {
                 $code = 200; // set to pass
+            } elseif (isset($matched['msg']) && '.' === $matched['msg']) {
+                $this->markTestSkipped('failed ('.$matched['name'].'): '.$msg);
             } else {
                 $this->markTestIncomplete('failed ('.$matched['name'].'): '.$msg);
             }
