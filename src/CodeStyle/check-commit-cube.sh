@@ -288,12 +288,21 @@ $gitListFiles -- '*.yml' | syConsoleXargsN1 lint:yaml -- || warnWhenMissing
 #check composer
 if ! $gitListFiles --quiet -- 'composer.*'
 then
-    if [ -f ./composer.phar ]
+    composerCmd=''
+    for checkDir in . .. ../..
+    do
+        if [ -f $checkDir/composer.phar ]
+        then
+           composerCmd="php $checkDir/composer.phar"
+           break
+        fi
+    done
+    if [ -n "$composerCmd" ]
     then
-        composerCmd='php ./composer.phar'
-    elif [ -f ../composer.phar ]
+        true # is set
+    elif [ -n "$(type -t composer.phar)" ] || [ -z "$(type -t composer)" ]
     then
-        composerCmd='php ../composer.phar'
+        composerCmd='composer.phar'
     else
         composerCmd='composer'
     fi
