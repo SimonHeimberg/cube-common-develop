@@ -233,9 +233,9 @@ class SmoketestPageLoadingBase extends WebTestBase
         if (getenv('PageLoading_Load')) {
             if (file_put_contents($rPath, Yaml::dump($curUrls))) {
                 $urls = $curUrls;
-                print " # routes file regenerated\n";
+                echo " # routes file regenerated\n";
             } else {
-                print " # FAILED generating routes file\n";
+                echo " # FAILED generating routes file\n";
             }
         } else {
             $newFound = false;
@@ -342,7 +342,7 @@ class SmoketestPageLoadingBase extends WebTestBase
      *
      * TODO remove if not used anymore.
      *
-     * @return boolean false
+     * @return bool false
      */
     protected static function skipUnknownRouteParameters()
     {
@@ -383,11 +383,11 @@ class SmoketestPageLoadingBase extends WebTestBase
     /**
      * Checks if error ($msg and $code) match any of the given variants.
      *
-     * @param int $code    error code
-     * @param string $msg  error message
+     * @param int          $code  error code
+     * @param string       $msg   error message
      * @param array|string $anyOf '@...' or array of ('@...' or ['msg' => string, 'code' => int, ...], msg or code must be present)
      *
-     * @return null|array Matching element of $anyOf (with ['name'] set to key), null else.
+     * @return null|array matching element of $anyOf (with ['name'] set to key), null else
      */
     private static function matchAnyOf($code, $msg, $anyOf)
     {

@@ -9,10 +9,10 @@ class WebTestCube extends WebTestBase
     /**
      * Do a request and check the http status.
      *
-     * @param Client  $client
-     * @param string  $method   http method GET|POST|...
-     * @param string  $path     path relative to root url
-     * @param boolean $redirect (see in checkResponse)
+     * @param Client $client
+     * @param string $method   http method GET|POST|...
+     * @param string $path     path relative to root url
+     * @param bool   $redirect (see in checkResponse)
      *
      * @return Crawler
      */
@@ -26,9 +26,9 @@ class WebTestCube extends WebTestBase
     /**
      * Submit a form and check the http reply.
      *
-     * @param Client        $client
-     * @param Form          $form     The form to submit
-     * @param boolean       $redirect (see in checkResponse)
+     * @param Client $client
+     * @param Form   $form     The form to submit
+     * @param bool   $redirect (see in checkResponse)
      *
      * @return Crawler
      */
@@ -42,9 +42,9 @@ class WebTestCube extends WebTestBase
     /**
      * Click on a link and check the http reply.
      *
-     * @param Client  $client
-     * @param Link    $link     The link to follow
-     * @param boolean $redirect (see in checkResponse)
+     * @param Client $client
+     * @param Link   $link     The link to follow
+     * @param bool   $redirect (see in checkResponse)
      *
      * @return Crawler
      */
@@ -56,8 +56,8 @@ class WebTestCube extends WebTestBase
     }
 
     /**
-     * @param Client  $client
-     * @param boolean $redirect if to follow a redirect
+     * @param Client $client
+     * @param bool   $redirect if to follow a redirect
      *
      * @return Crawler
      */
@@ -92,13 +92,13 @@ class WebTestCube extends WebTestBase
     }
 
     /**
-     * checks if the page loads valid and if it contains a matching heading
+     * checks if the page loads valid and if it contains a matching heading.
      *
      * @param Client $client
      * @param string $url    url to page to check
      * @param string $title  expected title on page
      *
-     * @return Cralwer       crawler of the full page
+     * @return Cralwer crawler of the full page
      */
     public function basicPageCheck(Client $client, $url, $title)
     {
@@ -113,7 +113,7 @@ class WebTestCube extends WebTestBase
     }
 
     /**
-     * checks if there is a link for all given urls
+     * checks if there is a link for all given urls.
      *
      * @param Crawler $crawler
      * @param array   $urls    urls (string) to find in the page
@@ -133,7 +133,7 @@ class WebTestCube extends WebTestBase
     }
 
     /**
-     * Fills all empty Form fields with some value
+     * Fills all empty Form fields with some value.
      *
      * @param Symfony\Component\DomCrawler\Form $form
      *
@@ -191,7 +191,7 @@ class WebTestCube extends WebTestBase
      * Get a value for a form field.
      *
      * @param Symfony\Component\DomCrawler\Field\FormField $element form element to get the value for
-     * @param int $i                                                index
+     * @param int                                          $i       index
      *
      * @return many value to fill in
      */
@@ -207,10 +207,10 @@ class WebTestCube extends WebTestBase
             $val = $options[$j];
             if ($val) {
                 // fine
-            } elseif (isset($options[$j+1])) {
-                $val = $options[$j+1];
-            } elseif (isset($options[$j-1])) {
-                $val = $options[$j-1];
+            } elseif (isset($options[$j + 1])) {
+                $val = $options[$j + 1];
+            } elseif (isset($options[$j - 1])) {
+                $val = $options[$j - 1];
             } else {
                 $this->markTestSkipped('no NON-empty option value for form field '.$element->getName());
             }
@@ -227,9 +227,9 @@ class WebTestCube extends WebTestBase
      *
      * @param Client $client current test client
      *
-     * @return User          user object of logged in user
+     * @return User user object of logged in user
      *
-     * @throws Exception when no user is logged in (probably because no request was done before).
+     * @throws Exception when no user is logged in (probably because no request was done before)
      */
     protected static function getThisUser(Client $client)
     {
