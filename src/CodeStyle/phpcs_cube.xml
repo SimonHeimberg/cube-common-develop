@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
 <ruleset name="cube">
     <description>Coding style for CUBE Tools, based on the one for Symfony2.</description>
-    <rule ref="./vendor/escapestudios/symfony2-coding-standard/Symfony2/ruleset.xml"/>
+    <rule ref="./vendor/escapestudios/symfony2-coding-standard/Symfony2/ruleset.xml">
+        <exclude name="PEAR.Functions.FunctionCallSignature"/><!-- PSR2 contains this too -->
+    </rule>
 
     <config name="severity" value="2"/>
 
@@ -41,6 +43,15 @@
 
     <!-- null values before end are not a default value (to allow null when type specified) -->
     <rule ref="PEAR.Functions.ValidDefaultValue.NotAtEnd">
+        <type>warning</type>
+    </rule>
+
+    <rule ref="PSR2.Methods.FunctionCallSignature">
+        <properties>
+            <property name="allowMultipleArguments" value="false" />
+        </properties>
+    </rule>
+    <rule ref="PSR2.Methods.FunctionCallSignature.Indent">
         <type>warning</type>
     </rule>
 
