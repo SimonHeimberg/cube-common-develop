@@ -13,7 +13,8 @@
     "require": {
         "php": ">=5.3.3",
         "incenteev/composer-parameter-handler": "^2.1",
-        "escapestudios/symfony2-coding-standard": "^2.9"
+        "escapestudios/symfony2-coding-standard": "^2.9",
+        "friendsofphp/php-cs-fixer": "^2.3"
     },
     "autoload": {
         "psr-4": {"CubeTools\\CubeCommonDevelop\\": "src/"}
