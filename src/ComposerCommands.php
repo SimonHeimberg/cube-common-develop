@@ -28,11 +28,18 @@ class ComposerCommands
             // it is an array of configs
             $config = $config[0];
         }
+        $cfgFile = $config['file'];
         $config['file'] = str_replace('.yml', $postfix.'.yml', $config['file']);
         $config['keep-outdated'] = true;
         $extras['incenteev-parameters'] = array($config);
         $package->setExtra($extras);
 
-        return ScriptHandler::buildParameters($event);
+        $ret = ScriptHandler::buildParameters($event);
+
+        if (is_file($cfgFile)) {
+            touch($cfgFile); // to force the container to rebuild
+        }
+
+        return $ret;
     }
 }
