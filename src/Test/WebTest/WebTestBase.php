@@ -19,7 +19,6 @@ class WebTestBase extends WebTestCase
     private static $client;
 
     /**
-     *
      * @var bool
      */
     private static $conditionsChecked = false;
@@ -132,11 +131,10 @@ class WebTestBase extends WebTestCase
         return $msg;
     }
 
-
     /**
      * @param Client $client
      *
-     * @return string        message with details about unexpected redirect
+     * @return string message with details about unexpected redirect
      */
     public static function msgUnexpectedRedirect(Client $client)
     {
@@ -220,7 +218,7 @@ class WebTestBase extends WebTestCase
      * Is at most called once per run of phpunit.
      *
      * @param Client    $client
-     * @param Exception $e      The exeption which failed the test.
+     * @param Exception $e      the exeption which failed the test
      *
      * @throws \Exception when a failure reason is detected (with the original exeption chained)
      */
