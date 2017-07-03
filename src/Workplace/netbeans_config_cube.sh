@@ -2,8 +2,9 @@
 
 # encourage developer to use the recommended netbeans settings
 
-if [ -d nbproject ] || [ -d ~/.netbeans/ ] || type netbeans 2>&1 >/dev/null
+if [ -d nbproject ] || [ -d ~/.netbeans/ ] || type netbeans >/dev/null 2>&1
 then # netbeans is installed
+    nbInstall=1
     installNetbeansSettings () {
         nbUrl=https://github.com/SimonHeimberg/nbproject_4cube
         {
@@ -49,4 +50,5 @@ installGitHook () {
 
 installGitHook $1
 
-jobs %% 2>/dev/null && sleep 2 # wait a bit to allow jobs to be finished
+[ -n "$nbInstall" ] && jobs %% | grep -q Running && sleep 2 # wait a bit to allow jobs to be finished
+true # as return value
