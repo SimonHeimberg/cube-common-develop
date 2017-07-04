@@ -169,7 +169,7 @@ class WebTestCube extends WebTestBase
         }
 
         $errors = array();
-        foreach ($formsData['form'] as $formName => $form) { // TODO do with ArrayHelper::filterRecursive and ...::flattenWithKeys
+        foreach ($formsData['form'] as $formName => $form) {
             if (isset($form['errors'])) {
                 $errors[$formName] = $form['errors'];
             }
