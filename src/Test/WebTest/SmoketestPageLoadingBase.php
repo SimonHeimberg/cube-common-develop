@@ -54,11 +54,7 @@ class SmoketestPageLoadingBase extends WebTestBase
                 if ($client->getResponse()->isRedirect()) {
                     $redirect = $client->getResponse()->getTargetUrl();
                     if (isset($info->redirect)) {
-                        if ($client->getResponse()->isRedirect($info->redirect)) {
-                            $this->assertTrue(true);
-                        } else {
-                            $this->assertTrue(false, 'redirect to '.$redirect.' instead of '.$info->redirect);
-                        }
+                        $this->checkRedirectTarget($client, $info, $redirect);
                         $code = 200; // set to pass
                     } else {
                         $msg = static::msgUnexpectedRedirect($client);
@@ -451,5 +447,21 @@ class SmoketestPageLoadingBase extends WebTestBase
         }
 
         return self::$specials[$group][$key];
+    }
+
+    /**
+     * Checks if redirect is to expected target.
+     *
+     * @param Client $client
+     * @param array  $info
+     * @param string $redirect url redirected to
+     */
+    private function checkRedirectTarget($client, $info, $redirect)
+    {
+        if ($client->getResponse()->isRedirect($info->redirect)) {
+            $this->assertTrue(true);
+        } else {
+            $this->assertTrue(false, 'redirect to '.$redirect.' instead of '.$info->redirect);
+        }
     }
 }
