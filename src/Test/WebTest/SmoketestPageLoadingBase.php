@@ -261,26 +261,7 @@ class SmoketestPageLoadingBase extends WebTestBase
         }
         foreach ($urls as $name => &$data) {
             $special = isset($specials['tests'][$name]) ? $specials['tests'][$name] : array();
-            $type = '';
-            if (empty($special)) {
-                // nothing, quick path
-            } elseif (isset($special['tested'])) {
-                $type = '_tested';
-            } elseif (isset($special['ignore'])) {
-                $type = 'testIgnore';
-            } elseif (isset($special['knownProblem'])) {
-                $type = 'testKnownProblem';
-            } elseif (isset($special['expectError'])) {
-                $type = 'testExpectError';
-            }
-            if ($type != '') {
-                // type already set
-            } elseif (strpos($data['path'], '{')) {
-                $type = 'testSimplePageLoadingWithParameterUrl';
-            } else {
-                $type = 'testSimplePageLoading';
-            }
-            $data['testType'] = $type;
+            $data['testType'] = static::determineTestType($special);
             $data['testSpecial'] = $special;
         }
 
@@ -463,5 +444,30 @@ class SmoketestPageLoadingBase extends WebTestBase
         } else {
             $this->assertTrue(false, 'redirect to '.$redirect.' instead of '.$info->redirect);
         }
+    }
+
+    private static function determineTestType(array $special)
+    {
+        $type = '';
+        if (empty($special)) {
+            // nothing, quick path
+        } elseif (isset($special['tested'])) {
+            $type = '_tested';
+        } elseif (isset($special['ignore'])) {
+            $type = 'testIgnore';
+        } elseif (isset($special['knownProblem'])) {
+            $type = 'testKnownProblem';
+        } elseif (isset($special['expectError'])) {
+            $type = 'testExpectError';
+        }
+        if ($type != '') {
+            // type already set
+        } elseif (strpos($data['path'], '{')) {
+            $type = 'testSimplePageLoadingWithParameterUrl';
+        } else {
+            $type = 'testSimplePageLoading';
+        }
+
+        return $type;
     }
 }
