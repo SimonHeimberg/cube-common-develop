@@ -261,7 +261,7 @@ class SmoketestPageLoadingBase extends WebTestBase
         }
         foreach ($urls as $name => &$data) {
             $special = isset($specials['tests'][$name]) ? $specials['tests'][$name] : array();
-            $data['testType'] = static::determineTestType($special);
+            $data['testType'] = static::determineTestType($special, $data);
             $data['testSpecial'] = $special;
         }
 
@@ -446,7 +446,7 @@ class SmoketestPageLoadingBase extends WebTestBase
         }
     }
 
-    private static function determineTestType(array $special)
+    private static function determineTestType(array $special, array $urlData)
     {
         $type = '';
         if (empty($special)) {
@@ -462,7 +462,7 @@ class SmoketestPageLoadingBase extends WebTestBase
         }
         if ($type != '') {
             // type already set
-        } elseif (strpos($data['path'], '{')) {
+        } elseif (strpos($urlData['path'], '{')) {
             $type = 'testSimplePageLoadingWithParameterUrl';
         } else {
             $type = 'testSimplePageLoading';
