@@ -201,6 +201,19 @@ $gitListFiles -- '*.php' | $xArgs0n1 -- php -l
 vendorBin=vendor/bin
 [ -d $vendorBin ] || vendorBin=bin
 
+[ -z $phpBinary ] && phpBinary=c
+findPhpBinary () {
+    if [ c != "$phpBinary" ]
+    then
+        true
+    elif ls ./???/cache/ccPhpVersion >/dev/null 2>&1
+    then
+        phpBinary="$(type -p $(cat ./???/cache/ccPhpVersion | head -n 1))"
+    else
+        phpBinary=''
+    fi
+}
+
 runPhpUnit () {
     if [ -z "$phpUnit" ]
     then
@@ -254,25 +267,28 @@ syConsoleRun() {
         echo $syConsoleError $@
         return 127 # not found error
     fi
-    $syConsole $@
+    findPhpBinary
+    $phpBinary $syConsole $@
 }
 syConsoleXargs () {
     local oneChar
+    findPhpBinary
     if ! findSyConsole  && read -N 1 oneChar
     then # no console but input, trigger error
         { printf "$oneChar"; cat; } | $xArgs0 -- echo $syConsoleError $@
         return 127
     fi
-    $xArgs0 -- $syConsole $@
+    $xArgs0 -- $phpBinary $syConsole $@
 }
 syConsoleXargsN1 () {
     local oneChar
+    findPhpBinary
     if ! findSyConsole && read -N 1 oneChar
     then # no console but input, trigger error listing files in one command
         { printf "$oneChar"; cat; } | $xArgs0 -- echo $syConsoleError "$@" for
         return 127
     fi
-    $xArgs0n1 -- $syConsole "$@"
+    $xArgs0n1 -- $phpBinary $syConsole "$@"
 }
 
 
@@ -288,12 +304,13 @@ $gitListFiles -- '*.yml' | syConsoleXargsN1 lint:yaml -- || warnWhenMissing
 #check composer
 if ! $gitListFiles --quiet -- 'composer.*'
 then
+    findPhpBinary
     composerCmd=''
     for checkDir in . .. ../..
     do
         if [ -f $checkDir/composer.phar ]
         then
-           composerCmd="php $checkDir/composer.phar"
+           composerCmd="${phpBinary:-php} $checkDir/composer.phar"
            break
         fi
     done
@@ -302,9 +319,11 @@ then
         true # is set
     elif [ -n "$(type -t composer.phar)" ] || [ -z "$(type -t composer)" ]
     then
-        composerCmd='composer.phar'
+        composerCmd=$(type -p composer.phar)
+        composerCmd="${phpBinary:-php} ${composerCmd:-composer.phar}"
     else
-        composerCmd='composer'
+        composerCmd=$(type -p composer)
+        composerCmd="${phpBinary:-php} ${composerCmd:-composer}"
     fi
     $composerCmd validate || showWarning
 fi
