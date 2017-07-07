@@ -10,10 +10,10 @@
 
 namespace CubeTools\CubeCommonDevelop\CodeStyle;
 
-$finder = require __DIR__.'/php_cs_cube.php';
+$config = require __DIR__.'/php_cs_cube.php';
 
-$rules = array_merge(array('@PSR2' => true), $finder->getRules());
+$rules = array_merge(array('@PSR2' => true), $config->getRules());
 unset($rules['@Symfony']);
-$finder->setRules($rules);
+$config->setRules($rules);
 
-return $finder;
+return $config;
