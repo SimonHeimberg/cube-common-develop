@@ -224,7 +224,7 @@ runPhpUnit () {
         fi
     fi
 
-    $phpUnit "$@"
+    SYMFONY_DEPRECATIONS_HELPER=disabled $phpUnit "$@"
 }
 
 checkTranslations () {
