@@ -67,14 +67,23 @@ class WebTestBase extends WebTestCase
         } elseif ($newClient) {
             self::$client->restart();
         }
+        static::prepareNextRequest();
 
+        return self::$client;
+    }
+
+    /**
+     * Prepares environment for next (test) request.
+     *
+     * Empties global $_GET variable.
+     */
+    public static function prepareNextRequest()
+    {
         if ($_GET) {
             /* knp_paginator pas problem when it is set from a previous run
                (it sets it when only a default sorting is set, on the next run it does not match */
             $_GET = array();
         }
-
-        return self::$client;
     }
 
     /**
