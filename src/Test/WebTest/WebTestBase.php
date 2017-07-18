@@ -95,7 +95,11 @@ class WebTestBase extends WebTestCase
      */
     public static function getPageLoadingFailure($crawler, $testName)
     {
-        $errTitle = trim($crawler->filter('div.text-exception h1')->text());
+        $errTitle = '';
+        $crTitle = $crawler->filter('div.text-exception h1');
+        if (count($crTitle)) {
+            $errTitle = trim($crTitle->text());
+        }
         if (!$errTitle) {
             $errTitle = trim($crawler->filter('title')->text());
         }
