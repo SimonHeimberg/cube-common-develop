@@ -205,7 +205,8 @@ class WebTestBase extends WebTestCase
         $doCheck = self::$client && !self::$conditionsChecked && $this->usesClient &&
             self::$probablyWorking < 24 && !getenv('TestCaseDisableCheck') &&
             ('PHPUnit_Framework_ExpectationFailedException' !== get_class($e) ||
-                false === strpos($e->getMessage(), 'local problem ')
+                false === strpos($e->getMessage(), 'local problem ') &&
+                false === strpos($e->getMessage(), '_routes.yml')
             );
         if ($doCheck) {
             fwrite(STDOUT, "  checking local problems - after a failure\n");
