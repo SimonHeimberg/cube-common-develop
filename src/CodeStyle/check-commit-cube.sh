@@ -195,6 +195,8 @@ then
     ## or stash changes and unstash at end, see http://daurnimator.com/post/134519891749/testing-pre-commit-with-git
 fi
 
+[ -f .git/MERGE_HEAD ] && whenNoMerge=true || whenNoMerge='' #runs "true cmd" when in a merge, the cmd else
+
 #valid php ?
 $gitListFiles -- '*.php' | $xArgs0n1 -- php -l
 
@@ -330,7 +332,7 @@ fi
 
 #check style
 phpCs="$vendorBin/phpcs --colors --report-width=auto -l -p"
-$gitListFiles -- '*.php' '*.js' '*.css' | $xArgs0 -- $phpCs || showWarning
+$whenNoMerge $gitListFiles -- '*.php' '*.js' '*.css' | $xArgs0 -- $phpCs || showWarning
 # config is in project dir
 
 if [ "0" = "$retStat" ]
