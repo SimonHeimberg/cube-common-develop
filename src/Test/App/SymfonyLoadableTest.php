@@ -4,6 +4,7 @@ namespace CubeTools\CubeCommonDevelop\Test\App;
 
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\PhpExecutableFinder;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Basic test to check if symfony binaries are loadable.
@@ -13,7 +14,7 @@ use Symfony\Component\Process\PhpExecutableFinder;
  * Tests if web/app.php, web/app_dev.php and xxx/console are runnable.
  * Usable when modifying autoloading or console location, or ...
  */
-class SymfonyLoadableTest extends \PHPUnit_Framework_TestCase
+class SymfonyLoadableTest extends TestCase
 {
     /**
      *
