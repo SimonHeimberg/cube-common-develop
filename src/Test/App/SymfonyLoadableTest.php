@@ -57,7 +57,7 @@ class SymfonyLoadableTest extends TestCase
         $p = new Process(self::$php.' '.$console.' -V', null, null, 5);
         $p->mustRun();
         $this->assertEquals('', $p->getErrorOutput(), 'no error output');
-        $this->assertContains('ersion', $p->getOutput(), 'some output');
+        $this->assertContains('ymfony ', $p->getOutput(), 'some output');
         if ('bin/' === substr($console, 0, 4)) {
             $this->assertTrue(is_dir('var'), 'var/ exists if console in bin/');
         }
