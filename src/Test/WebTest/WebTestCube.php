@@ -154,34 +154,26 @@ class WebTestCube extends WebTestBase
     }
 
     /**
-     * Get errors of forms from the profiler.
+     * Get errors of forms from the profile.
      *
-     * @param Profiler $profiler
+     * @param Symfony\Component\HttpKernel\Profiler\Profile $profile
      *
-     * @return string[] all form errors with the keys containing the name of the form and the child
+     * @return string[]|null all form errors with the keys containing the name of the form and the child
      */
-    public static function getFormErrors($profiler)
+    public static function getFormErrors($profile)
     {
-        $formsData = $profiler->getCollector('form')->getData();
-
+        $formsData = $profile->getCollector('form')->getData();
         if (empty($formsData['nb_errors'])) {
             return null;
         }
 
         $errors = array();
-        foreach ($formsData['form'] as $formName => $form) {
-            if (isset($form['errors'])) {
-                $errors[$formName] = $form['errors'];
-            }
-            foreach ($form['children'] as $childName => $child) {
-                if (isset($child['errors'])) {
-                    $errors[$formName.':'.$childName] = $child['errors'];
-                }
-            }
+        foreach ($formsData['forms'] as $formName => $form) {
+            self::collectFormErrors($errors, $form, array($formName));
         }
 
         if (count($errors) !== $formsData['nb_errors']) {
-            $errors['TEST-'.__FUNCTION__] = 'TEST ERROR: expected '.$formsData['nb_errors'].' errors, but found '.count($errors);
+            $errors['TEST-'.__FUNCTION__] = 'DEBUG TEST ERROR: expected '.$formsData['nb_errors'].' errors, but found '.count($errors);
         }
 
         return $errors;
@@ -243,5 +235,20 @@ class WebTestCube extends WebTestBase
         }
 
         return $token->getUser();
+    }
+
+    private static function collectFormErrors(array &$errorsResult, $form, array $formNames)
+    {
+        if (isset($form['errors']) && count($form['errors'])) {
+            $value = '';
+            foreach ($form['errors'] as $item) {
+                $value .= '; '.$item['message'];
+            }
+            $key = join(':', $formNames);
+            $errorsResult[$key] = $key." = '".substr($value, 2)."'";
+        }
+        foreach ($form['children'] as $childName => $child) {
+            self::collectFormErrors($errorsResult, $child, array_merge($formNames, array($childName)));
+        }
     }
 }
