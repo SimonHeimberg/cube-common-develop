@@ -3,6 +3,7 @@
 namespace CubeTools\CubeCommonDevelop\Test\WebTest;
 
 use Symfony\Component\Yaml\Yaml;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Route;
 
 /**
@@ -26,7 +27,7 @@ class SmoketestPageLoadingBase extends WebTestBase
     {
         $aw = $this->loadPage($method, $path, $info);
         $this->throwIfException($aw);
-        $this->assertEquals(200, $aw['code'], $aw['msg']);
+        $this->assertEquals(Response::HTTP_OK, $aw['code'], $aw['msg']);
     }
 
     protected function loadPage($method, $path, $info)
@@ -54,13 +55,13 @@ class SmoketestPageLoadingBase extends WebTestBase
         }
 
         switch ($code) {
-            case 200:
+            case Response::HTTP_OK:
                 if (isset($info->redirect)) {
                     $this->AssertTrue(false, 'expected redirect to '.$info->redirect);
                 }
                 break;
-            case 404:
-            case 500:
+            case Response::HTTP_NOT_FOUND:
+            case Response::HTTP_INTERNAL_SERVER_ERROR:
                 $msg .= ': '.$this->getPageLoadingFailure($crawler, $this->getName());
                 break;
             case self::EXCEPTION_CODE:
@@ -70,7 +71,7 @@ class SmoketestPageLoadingBase extends WebTestBase
                     $redirect = $client->getResponse()->getTargetUrl();
                     if (isset($info->redirect)) {
                         $this->checkRedirectTarget($client, $info, $redirect);
-                        $code = 200; // set to pass
+                        $code = Response::HTTP_OK; // set to pass
                     } else {
                         $msg = static::msgUnexpectedRedirect($client);
                     }
@@ -84,12 +85,12 @@ class SmoketestPageLoadingBase extends WebTestBase
                     }
                 }
         }
-        if (200 !== $code && isset($info->passOrAnyOf)) {
+        if (Response::HTTP_OK !== $code && isset($info->passOrAnyOf)) {
             $matched = $this->matchAnyOf($code, $msg, $info->passOrAnyOf);
             if (null === $matched) {
                 // no match, will fail
             } elseif (isset($matched['pass']) && $matched['pass']) {
-                $code = 200; // set to pass
+                $code = Response::HTTP_OK; // set to pass
             } elseif (isset($matched['msg']) && '.' === $matched['msg']) {
                 $this->markTestSkipped('failure matched ('.$matched['name'].'): '.$msg);
             } else {
@@ -111,16 +112,18 @@ class SmoketestPageLoadingBase extends WebTestBase
         $url = $this->replaceUrlParameter($url, $info, $method);
         $aw = $this->loadPage($method, $url, $info);
         $this->throwIfException($aw);
-        if ($aw['code'] == 404 && (strpos($aw['msg'], 'entity') || strpos($aw['msg'], ' not found')) ||
-            $aw['code'] == 500 && strpos($aw['msg'], 'The file "') && strpos($aw['msg'], '" does not exist')
+        if ($aw['code'] == Response::HTTP_NOT_FOUND && (strpos($aw['msg'], 'entity') || strpos($aw['msg'], ' not found')) ||
+            $aw['code'] == Response::HTTP_INTERNAL_SERVER_ERROR && strpos($aw['msg'], 'The file "') && strpos($aw['msg'], '" does not exist')
         ) {
             // id 1 does probably not exist locally, mark as skipped
             $this->markTestSkipped('missing resource locally - '.$aw['msg']);
-        } elseif ($aw['code'] == 302 && strpos($aw['msg'], 'flashbag: {"general-notice":["You are not allowed ')) {
+        } elseif ($aw['code'] == Response::HTTP_FOUND && strpos($aw['msg'], 'flashbag: {"general-notice":["You are not allowed ') ||
+            $aw['code'] == Response::HTTP_UNAUTHORIZED
+        ) {
             // no rights for this
             $this->markTestSkipped('no access right on local resource - '.$aw['msg']);
         }
-        $this->assertEquals(200, $aw['code'], $aw['msg']);
+        $this->assertEquals(Response::HTTP_OK, $aw['code'], $aw['msg']);
     }
 
     /**
@@ -133,11 +136,11 @@ class SmoketestPageLoadingBase extends WebTestBase
         }
         $url = $this->replaceUrlParameter($url, $info, $method);
         $aw = $this->loadPage($method, $url, $info);
-        if ($aw['code'] != 200) {
+        if ($aw['code'] !== Response::HTTP_OK) {
             $matched = $this->matchAnyOf($aw['code'], $aw['msg'], $info->knownProblem);
             if (null === $matched) {
                 // no match, fail
-                $this->AssertEquals(200, $aw['code'], $aw['msg']);
+                $this->AssertEquals(Response::HTTP_OK, $aw['code'], $aw['msg']);
             } else {
                 // problem known and matches description
                 $this->markTestSkipped('known problem ('.$matched['name'].'): '.$aw['msg']);
@@ -166,7 +169,7 @@ class SmoketestPageLoadingBase extends WebTestBase
             } else {
                 $this->markTestIncomplete('failed ('.$matched['name'].'): '.$aw['msg']);
             }
-        } elseif (200 === $aw['code']) {
+        } elseif (Response::HTTP_OK === $aw['code']) {
             $this->fail('should have an error, but passed');
         } else {
             $this->fail('failed with wrong error (with '.$aw['code'].' - '.$aw['msg'].')');
