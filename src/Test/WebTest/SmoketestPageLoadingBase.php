@@ -285,11 +285,10 @@ class SmoketestPageLoadingBase extends WebTestBase
             $data['testSpecial'] = $special;
         }
 
-        return array('urls' => $urls, 'specials' => $specials);
+        return $urls;
     }
 
     protected static $urlData = null;
-    protected static $specials = null;
 
     /**
      * @param string $testMethodName name of test method the dataprovider is called for
@@ -297,9 +296,7 @@ class SmoketestPageLoadingBase extends WebTestBase
     public static function listUrls($testMethodName)
     {
         if (static::$urlData === null) {
-            $loaded = static::loadUrlData();
-            static::$urlData = $loaded['urls'];
-            static::$specials = $loaded['specials'];
+            static::$urlData = static::loadUrlData();
         }
         $i = 0;
         foreach (static::$urlData as $name => $data) {
@@ -380,33 +377,15 @@ class SmoketestPageLoadingBase extends WebTestBase
     /**
      * Checks if error ($msg and $code) match any of the given variants.
      *
-     * @param int          $code  error code
-     * @param string       $msg   error message
-     * @param array|string $anyOf '@...' or array of ('@...' or ['msg' => string, 'code' => int, ...], msg or code must be present)
+     * @param int    $code  error code
+     * @param string $msg   error message
+     * @param many[] $anyOf ['msg' => string, 'code' => int, ...], msg or code must be present)
      *
      * @return null|array matching element of $anyOf (with ['name'] set to key), null else
      */
-    private static function matchAnyOf($code, $msg, $anyOf)
+    private static function matchAnyOf($code, $msg, array $anyOf)
     {
-        if (is_string($anyOf) && $anyOf && '@' === $anyOf[0]) {
-            $anyOf = self::getFromConfigSpecials('anyMatchGroup', substr($anyOf, 1));
-            if (null === $anyOf) {
-                return null;
-            }
-        } elseif (!is_array($anyOf) && !$anyOf instanceof \Traversable) {
-            $msg = "\$anyOf must be '@xxx' or array, but it is ".gettype($anyOf).' ('.print_r($anyOf, true).')';
-            trigger_error($msg, E_USER_WARNING);
-
-            return null;
-        }
         foreach ($anyOf as $name => $any) {
-            if (is_string($any) && $any && '@' === $any[0]) {
-                $name .= ' '.$any;
-                $any = self::getFromConfigSpecials('anyMatch', substr($any, 1));
-                if (null === $any) {
-                    return null;
-                }
-            }
             if (is_string($any)) {
                 $match = $any;
                 $any = array();
@@ -432,26 +411,6 @@ class SmoketestPageLoadingBase extends WebTestBase
         }
 
         return null;
-    }
-
-    /**
-     * Read form special config, warn if not existing (and return null).
-     *
-     * @param string $group 1st config level below specials
-     * @param string $key   2nd config level below specials
-     *
-     * @return any
-     */
-    private static function getFromConfigSpecials($group, $key)
-    {
-        if (empty(self::$specials[$group][$key])) {
-            $msg = "$key must be in specials.$group on ";
-            trigger_error($msg, E_USER_WARNING);
-
-            return none;
-        }
-
-        return self::$specials[$group][$key];
     }
 
     /**
