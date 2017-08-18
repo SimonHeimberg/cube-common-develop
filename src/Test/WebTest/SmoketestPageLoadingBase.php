@@ -96,7 +96,7 @@ class SmoketestPageLoadingBase extends WebTestBase
         $url = $this->replaceUrlParameter($url, $info, $method);
         $aw = $this->loadPage($method, $url, $info);
         if ($aw['code'] == 404 && (strpos($aw['msg'], 'entity') || strpos($aw['msg'], ' not found')) ||
-            $aw['code'] == 500 && strpos($aw['msg'], 'The file "') && strpos($aw['msg'], '" does not exist (500 Internal Server Error)')
+            $aw['code'] == 500 && strpos($aw['msg'], 'The file "') && strpos($aw['msg'], '" does not exist')
         ) {
             // id 1 does probably not exist locally, mark as skipped
             $this->markTestSkipped('missing resource locally - '.$aw['msg']);
