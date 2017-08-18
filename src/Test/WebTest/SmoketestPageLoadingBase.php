@@ -17,12 +17,15 @@ use Symfony\Component\Routing\Route;
  */
 class SmoketestPageLoadingBase extends WebTestBase
 {
+    const EXCEPTION_CODE = 'exception';
+
     /**
      * @dataProvider listUrls
      */
     public function testSimplePageLoading($method, $path, $info)
     {
         $aw = $this->loadPage($method, $path, $info);
+        $this->throwIfException($aw);
         $this->assertEquals(200, $aw['code'], $aw['msg']);
     }
 
@@ -37,9 +40,19 @@ class SmoketestPageLoadingBase extends WebTestBase
         }
 
         $client = $this->getClient(true);
-        $crawler = $client->request($method, $path);
-        $code = $client->getResponse()->getStatusCode();
-        $msg = 'WRONG status code';
+        $ex = null;
+        try {
+            $crawler = $client->request($method, $path);
+            $code = $client->getResponse()->getStatusCode();
+            $msg = 'WRONG status code';
+        } catch (\Exception $ex) {
+            $code = self::EXCEPTION_CODE;
+            $msg = $ex->getMessage();
+        } catch (\Throwable $ex) { // since php7
+            $code = self::EXCEPTION_CODE;
+            $msg = $ex->getMessage();
+        }
+
         switch ($code) {
             case 200:
                 if (isset($info->redirect)) {
@@ -49,6 +62,8 @@ class SmoketestPageLoadingBase extends WebTestBase
             case 404:
             case 500:
                 $msg .= ': '.$this->getPageLoadingFailure($crawler, $this->getName());
+                break;
+            case self::EXCEPTION_CODE:
                 break;
             default:
                 if ($client->getResponse()->isRedirect()) {
@@ -82,7 +97,7 @@ class SmoketestPageLoadingBase extends WebTestBase
             }
         }
 
-        return array('code' => $code, 'msg' => $msg);
+        return array('code' => $code, 'msg' => $msg, 'exception' => $ex);
     }
 
     /**
@@ -95,6 +110,7 @@ class SmoketestPageLoadingBase extends WebTestBase
         }
         $url = $this->replaceUrlParameter($url, $info, $method);
         $aw = $this->loadPage($method, $url, $info);
+        $this->throwIfException($aw);
         if ($aw['code'] == 404 && (strpos($aw['msg'], 'entity') || strpos($aw['msg'], ' not found')) ||
             $aw['code'] == 500 && strpos($aw['msg'], 'The file "') && strpos($aw['msg'], '" does not exist')
         ) {
@@ -129,6 +145,7 @@ class SmoketestPageLoadingBase extends WebTestBase
         } else {
             $this->markTestIncomplete('PASSED, but marked as known problem');
         }
+        $this->throwIfException($aw);
     }
 
     /**
@@ -447,6 +464,20 @@ class SmoketestPageLoadingBase extends WebTestBase
             $this->assertTrue(true);
         } else {
             $this->assertTrue(false, 'redirect to '.$redirect.' instead of '.$info->redirect);
+        }
+    }
+
+    /**
+     * Throws a cached exception.
+     *
+     * @param many[] $aw with elements [ 'code' => str|int, 'msg' => str|\Exception ]
+     *
+     * @throws \Exception cached exception
+     */
+    private function throwIfException(array $aw)
+    {
+        if (self::EXCEPTION_CODE === $aw['code']) {
+            throw $aw['exception'];
         }
     }
 
