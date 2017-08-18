@@ -400,10 +400,14 @@ class SmoketestPageLoadingBase extends WebTestBase
             } else {
                 $match = $any['msg'];
             }
-            if (preg_match('~'.$match.'~', $msg)) {
-                $any['name'] = $name;
+            try {
+                if (preg_match('~'.$match.'~', $msg)) {
+                    $any['name'] = $name;
 
-                return $any;
+                    return $any;
+                }
+            } catch (\PHPUnit_Framework_Error_Warning $w) {
+                new \Exception('Invalid "'.$name.'.msg" in _special.yml, must be a pattern. '.$w->getMessage());
             }
         }
 
