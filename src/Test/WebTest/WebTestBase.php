@@ -97,6 +97,9 @@ class WebTestBase extends WebTestCase
     {
         $errTitle = '';
         $crTitle = $crawler->filter('div.text-exception h1');
+        if (0 === count($crTitle)) {
+            $crTitle = $crawler->filter('div.exception-message-wrapper h1'); // symfony >= 3.3
+        }
         if (count($crTitle)) {
             $errTitle = trim($crTitle->text());
         }
